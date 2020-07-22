@@ -17,4 +17,4 @@ CPP_DEPENDENCIES := $(foreach folder, $(folders), $(wildcard $(folder)/*.cpp))
 BUILD/$(EXECUTABLE): $(CPP_DEPENDENCIES) main.cpp
 	@mkdir BUILD
 	$(G++) -std=c++11 $^ -o $@ 
-	
+	@cd BUILD
