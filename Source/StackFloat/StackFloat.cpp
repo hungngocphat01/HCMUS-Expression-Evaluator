@@ -65,11 +65,7 @@ void stackPush(StackFloat *u_stack, float r_val) {
         throw runtime_error(ERR_NULL_STACK);
     }
     
-    SNodeFloat* new_node = new SNodeFloat;
-    // Brace-enclosed initializer list requires a proper constructor for SNodeFloat in GNU gc, so classical method is used here.
-    new_node->val = r_val;
-    new_node->down = u_stack->top;
-    
+    SNodeFloat* new_node = new SNodeFloat {r_val, u_stack->top};
     u_stack->top = new_node;
 }
 

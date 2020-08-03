@@ -54,7 +54,7 @@ void FileWrite(const char* filename, string content) {
     }
     
     // Write to file and get the number of chars written
-    int written_chars_num = fputs(content.c_str(), fp);
+    int written_chars_num = fprintf(fp, "%s", content.c_str());
     
     // If write failed
     if (written_chars_num == EOF && ferror(fp)) {
@@ -64,9 +64,8 @@ void FileWrite(const char* filename, string content) {
     
     // If write succeeded but not enough chars
     if (written_chars_num != content.size()) {
-        fclose(fp);
-        throw runtime_error("Error writing file: file written but not enough chars.");
+        cout << endl << "Warning: file written but not enough chars." << endl;
+        cout << "Wrote " << written_chars_num << " chars instead of " << content.size() << endl;
     }
-    
     fclose(fp);
 }

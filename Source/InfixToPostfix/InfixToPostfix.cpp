@@ -1,9 +1,9 @@
 #include "InfixToPostfix.h"
 
-// Strip spaces from a string
+// Strip spaces from a string to process it more conveniently
 void stripSpaces(string& s) {
     for (unsigned i = 0; i < s.size(); i++) {
-        while (s.at(i) ==  ' ') {
+        while (s[i] ==  ' ') {
             s.erase(i, 1);
         }
     }
@@ -31,7 +31,7 @@ char getNextChar(string s, int index) {
  Convert an infix expression to a postfix expression
  */
 string infix_to_postfix(string i_expression) {
-    // Strip spaces from the string
+    // Strip spaces from the string to process it more conveniently
     stripSpaces(i_expression);
     
     // Init a char stack
@@ -48,15 +48,20 @@ string infix_to_postfix(string i_expression) {
      Overall algorithm
      
      Source: based on https://www.geeksforgeeks.org/stack-set-2-infix-to-postfix/
-     Addition of support for float numbers, negative numbers and error handling/syntax tracker by me.
+     Addition of support for float numbers, negative numbers and complex error handling/syntax tracker by me.
      
      - Loop through the infix expression.
      - If the character is a digit or a decimal point '.', add it to the postfix expr.
      - If the character is an opening parenthesis '(', push it into the stack.
      - If the character is an operator,
-        + If the precedence of the current operator > precedence of stackTop() (or the stack is empty, or stackTop() == '('), push the operator into the stack.
-        + Else, pop the stack while the operator on the top has equal or higher precedence (priority) than the currently processed operator. If a '(' is encountered, stop there. Finally push the operator to the stack.
-     - If the character is a closing parenthesis, pop the stack (and append to the postfix expr) until an opening parenthesis is encountered (and ignore both). If the stack is empty before an opening parenthesis is found, raise syntax error.
+        + If the precedence of the current operator > precedence of stackTop() 
+        (or the stack is empty, or stackTop() == '('), push the operator into the stack.
+        + Else, pop the stack while the operator on the top has equal or higher precedence (priority) 
+        than the currently processed operator. If a '(' is encountered, stop there. 
+        Finally push the operator to the stack.
+     - If the character is a closing parenthesis, pop the stack 
+     (and append to the postfix expr) until an opening parenthesis is encountered (and ignore both). 
+     If the stack is empty before an opening parenthesis is found, raise syntax error.
      - Else, raise syntax error.
      - Finally, when the end of the infix expression is reached, pop all elements from the stack and add them to the postfix expr.
      */
@@ -72,7 +77,8 @@ string infix_to_postfix(string i_expression) {
                Except when:
                     + The digit is at the beginning of the expression
                       (if we skip this, there will be a space at the beginning of the resulting postfix expression.
-                   +  Before the digit was another digit or '.' or the processing number is negative (if we skip this, '1.25' will become '1 . 2 5', '-5' will become '- 5').
+                   +  Before the digit was another digit or '.' or the processing number is negative 
+                   (if we skip this, '1.25' will become '1 . 2 5', '-5' will become '- 5').
              */
             
             // The previous and the next character
@@ -81,7 +87,7 @@ string infix_to_postfix(string i_expression) {
             
             // Syntax tracking: before and after a '.' must be a number
             if (c == '.' && !isdigit(prev_char)) {
-                string e_str = error_string_gen("Syntax error: Unexpected non-digit before '.' at", index - 1, prev_char);
+                string e_str = error_string_gen("Syntax error: Unexpected non-digit before '.' at ", index - 1, prev_char);
                 stackFree(&stack);
                 throw runtime_error(e_str);
             }
@@ -91,6 +97,15 @@ string infix_to_postfix(string i_expression) {
                 throw runtime_error(e_str);
             }
             
+            // Syntax tracking: after a digit must be either a '.', an operator, another digit, a ')', or a '\0'
+            if (isdigit(c) && next_char != '\0' && 
+                next_char != '.' && !isoperator(next_char) && 
+                !isdigit(next_char) && next_char != ')') {
+                string e_str = error_string_gen("Syntax error: Unexpected token after digit at", index + 1, next_char);
+                stackFree(&stack);
+                throw runtime_error(e_str);
+            }
+
             // Check if the current number is negative or not
             char prev_prev_char = getPrevChar(i_expression, index - 1);
             bool isNegative = (prev_char == '-' && !isdigit(prev_prev_char) && prev_prev_char != ')');
@@ -98,7 +113,7 @@ string infix_to_postfix(string i_expression) {
              Example:
              2-5 => 5 is not negative
              -5 => -5 is negative. prev_prev_char is '\0', so it is not a number.
-             (-5 => -5 is negative. prev_prev_char is '\0', so it is not a number.
+             (-5 => -5 is negative. prev_prev_char is '(', so it is not a number.
              (2+4)-5 => 5 is not negative because prev_prev_char is ')'.
              2*-5 => -5 is negative
              ....
@@ -126,8 +141,13 @@ string infix_to_postfix(string i_expression) {
         // If the char is an operator
         else if (isoperator(c)) {
             char prev_char = getPrevChar(i_expression, index);
+            char next_char = getNextChar(i_expression, index);
             
-            // Negative number handling: if the operator is a '-', and it is followed immediately by a digit, and the previous char must not be a number (if so, it is a minus sign, not a negative sign), then append it into the result expression to form a negative number. Skip processing the '-' and go on to the next char.
+            /* Negative number handling: if the operator is a '-', and it is followed immediately by a digit, 
+            and the previous char must not be a number (if so, it is a minus operator, not a negative sign), 
+            then append it into the result expression to form a negative number. 
+            Skip processing the '-' and go on to the next char.
+            */
             if (c == '-' && isdigit(i_expression[index + 1]) && !isdigit(prev_char)) {
                 result_expr += ' ';
                 result_expr += c;
@@ -137,6 +157,12 @@ string infix_to_postfix(string i_expression) {
             // Syntax tracker: before an operator must be a digit or a ')'.
             if (!isdigit(prev_char) && prev_char != ')') {
                 string e_str = error_string_gen("Conversion syntax error: unexpected non-operand before an operator at ", index, prev_char);
+                stackFree(&stack);
+                throw runtime_error(e_str);
+            }
+            // Syntax tracker: after an operator mustn't be another operator
+            if (isoperator(next_char)) {
+                string e_str = error_string_gen("Conversion syntax error: unexpected operator after an operator at ", index + 1, next_char);
                 stackFree(&stack);
                 throw runtime_error(e_str);
             }

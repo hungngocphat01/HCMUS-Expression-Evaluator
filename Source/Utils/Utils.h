@@ -7,18 +7,19 @@ using std::to_string;
 
 // This file contains several shared functions used in PostfixEval and InfixToPostfix
 // Because these functions are shared amongs different files (included twice), they have to be 'inline'.
+// Without 'inline', symbol duplication is likely to happen, which leads to compilation failure.
 
 /*
  Checks if a character is an operator
 */
-inline bool isoperator(char c) {
+static inline bool isoperator(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
 }
 
 /*
- Returns the precedence (priority) of operators
+ Returns the precedence (priority) of an operator
 */
-inline unsigned priority(char c) {
+static inline unsigned priority(char c) {
     if (isoperator(c)) {
         switch (c) {
             case '^':
@@ -37,18 +38,20 @@ inline unsigned priority(char c) {
     return 0;
 }
 
-/* Generate an syntax error description
+/* Generate a syntax error description
     err_noti: error notification string/type of the error.
     position: where the error occured. Hide the position when -1 is passed.
-    err_char: the character caused the error
+    err_char: the character causing the error
     addt: Additional info (optional)
  
-    Example: Syntax error at 3: 'a'. Invalid operand.
+    Example: "Syntax error at 3: 'a'. Invalid operand."
  */
-inline string error_string_gen(string err_noti, int position, char err_char, string addt = "") {
+static inline string error_string_gen(string err_noti, int position, char err_char, string addt = "") {
     string e_str;
     e_str += err_noti;
-    if (position >= 0) e_str += to_string(position);
+    if (position >= 0) {
+        e_str += to_string(position);
+    }
     e_str += ": '";
     e_str += err_char;
     e_str += "'. ";
