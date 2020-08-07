@@ -1,11 +1,5 @@
 # Makefile for MyCalc by Hung Ngoc Phat (19120615)
 
-ifeq ($(OS), Windows_NT)
-	EXECUTABLE := MyCalc.exe 
-else
-	EXECUTABLE := MyCalc
-endif
-
 G++ := g++
 
 # Subfolders
