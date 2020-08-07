@@ -1,4 +1,4 @@
-# Makefile for ExpressionEvaluator by Hung Ngoc Phat (19120615)
+# Makefile for MyCalc by Hung Ngoc Phat (19120615)
 
 ifeq ($(OS), Windows_NT)
 	EXECUTABLE := MyCalc.exe 
